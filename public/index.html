@@ -1,0 +1,25 @@
+<html>
+<head>
+<link rel="stylesheet" href="/css/app.css" type="text/css">
+<!-- <script src="/socket.io/socket.io.js"></script> -->
+</head>
+<body>
+  <input id='input-view'></input>
+  <ul id='item-view'>
+  </ul>
+</body>
+<script id='item-template' type='text/template'>
+  <% _.each(models, function (m) { %>
+    <li data-id='<%= m.id %>'><%= m.msg %></li>
+  <% }); %>
+</script>
+<script src='/js/libs/jquery.js'></script>
+<script src='/js/libs/underscore.js'></script>
+<script src='/js/libs/backbone.js'></script>
+
+<script src='/js/models/item.js'></script>
+<script src='/js/collections/item.js'></script>
+<script src='/js/views/item.js'></script>
+<script src='/js/views/input.js'></script>
+<script src='/js/main.js'></script>
+</html>
