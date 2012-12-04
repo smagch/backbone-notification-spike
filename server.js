@@ -7,32 +7,25 @@ var zmq = require('zmq')
   , http = require('http')
   , path = require('path')
   , _ = require('underscore')
-  , express = require('express');
+  , express = require('express')
+  , DB = require('./lib/db');
 
 /**
- * generate guid
+ * initialize Database
  */
 
-function getId() {
-  return Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
-}
-
-// models
-
-var cache = [
+var db = new DB([
   {msg: 'Hello'},
   {msg: 'World'},
   {msg: 'I'},
   {msg: 'am'},
   {msg: 'a'},
   {msg: 'man'}
-];
+]);
 
-// add id
-
-cache.forEach(function (model) {
-  model.id = getId();
-});
+/**
+ * initialize Express
+ */
 
 var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
@@ -43,18 +36,18 @@ app.use(express.bodyParser());
  */
 
 app.get('/item', function (req, res) {
-  res.json(cache);
+  res.json(db.getAll());
 });
 
 /**
- * new item
+ * create new item
  */
 
 app.post('/item', function (req, res) {
   var data = req.body;
-  data.id = getId();
-  cache.push(data);
+  var ret = db.add(data);
   setTimeout(function () {
+    if (!ret) res.json(404);
     res.json(200, data);
   }, 100);
 });
@@ -66,9 +59,7 @@ app.post('/item', function (req, res) {
 app.put('/item/:id', function (req, res) {
   var id = req.params.id;
   var data = req.body;
-  var target = _.find(cache, function (model) {
-    return model.id === id;
-  });
+  var target = db.findById(id);
   if (!target) return res.json(400, 'not found');
   target.msg = data.msg;
   res.json(200, data);
@@ -80,12 +71,8 @@ app.put('/item/:id', function (req, res) {
 
 app.del('/item/:id', function (req, res) {
   var id = req.params.id;
-  var target = _.find(cache, function (model) {
-    return model.id === id;
-  });
-  if (!target) return res.json(400, 'not found');
-  var index = cache.indexOf(target);
-  cache.splice(index, 1);
+  var ret = db.remove(id);
+  if (!ret) return res.json(404);
   res.json(200);
 });
 
