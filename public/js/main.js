@@ -13,14 +13,25 @@
     ItemView = global.ItemView,
     InputView = global.InputView;
 
-  // var socket = io.connect('http://localhost:3000');
-  // socket.on('connect', function () {
-  //   socket.emit('set nickname', prompt('What is your nickname?'));
-  //   socket.on('ready', function () {
-  //     console.log('Connected !');
-  //     socket.emit('msg', prompt('What is your message?'));
-  //   });
-  // });
+  var socket = io.connect('http://localhost:3000');
+  socket.on('connect', function () {
+
+    socket.on('add', function (model) {
+      console.log('add event called');
+      itemCollection.add(model);
+    });
+
+    socket.on('remove', function (model) {
+      console.log('remove event callded');
+      itemCollection.remove(model.id);
+    });
+
+    socket.on('change', function (model) {
+      console.log('change event called');
+      var currentModel = itemCollection.get(model.id);
+      currentModel.set(model);
+    });
+  });
 
   /**
    * template

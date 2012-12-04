@@ -38,20 +38,24 @@
       this.collection.edit(id);
     },
     remove: function (model) {
+      console.log('remove');
       this.get(model.id).remove();
     },
     change: function (model, options) {
+      console.log('change');
       var json = model.toJSON();
       var html = this.template({models: [json]});
       this.get(model.id).replaceWith(html);
     },
     render: function (collection, options) {
+      console.log('render');
       var json = collection.toJSON();
       var html = this.template({models: json});
       this.$el.empty().html(html);
       return this;
     },
     add: function (model, options) {
+      console.log('add');
       var json = model.toJSON();
       var html = this.template({models: [json]});
       this.$el.append(html);

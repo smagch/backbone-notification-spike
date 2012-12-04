@@ -23,12 +23,20 @@
       if (this._edit && model && model.msg === '') {
         model = this.get(this._edit.id);
         this._edit = null;
-        model.destroy();
+        model.destroy({
+          wait: true
+        });
       } else if (!this._edit && model) {
-        this.create(model, {wait: true});
+        this.create(model, {
+          silent: true,
+          wait: true
+        });
       } else {
         this.trigger('end', this._edit);
-        this._edit.save(model);
+        this._edit.save(model, {
+          silent: true,
+          wait: true
+        });
         this._edit = null;
       }
     }

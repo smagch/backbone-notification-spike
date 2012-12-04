@@ -3,8 +3,7 @@
  * Module Dependencies
  */
 
-var zmq = require('zmq')
-  , http = require('http')
+var http = require('http')
   , path = require('path')
   , _ = require('underscore')
   , express = require('express')
@@ -23,13 +22,25 @@ var db = new DB([
   {msg: 'man'}
 ]);
 
+var delay = 200;
+
 /**
- * initialize Express
+ * initialize zmq socket
+ */
+
+// var sock = zmq.socket('push');
+// sock.bindSync('tcp://127.0.0.1:3010');
+// console.log('Producer bound to port 3010');
+
+/**
+ * initialize Express server
  */
 
 var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.bodyParser());
+
+var server, io;
 
 /**
  * bulk get
@@ -45,11 +56,12 @@ app.get('/item', function (req, res) {
 
 app.post('/item', function (req, res) {
   var data = req.body;
-  var ret = db.add(data);
+  var model = db.add(data);
+  if (!model) return res.json(404);
   setTimeout(function () {
-    if (!ret) res.json(404);
-    res.json(200, data);
-  }, 100);
+    res.json(200);
+    io.sockets.emit('add', model);
+  }, delay);
 });
 
 /**
@@ -59,10 +71,12 @@ app.post('/item', function (req, res) {
 app.put('/item/:id', function (req, res) {
   var id = req.params.id;
   var data = req.body;
-  var target = db.findById(id);
-  if (!target) return res.json(400, 'not found');
-  target.msg = data.msg;
-  res.json(200, data);
+  var model = db.update(data);
+  if (!model) return res.json(500);
+  setTimeout(function () {
+    res.json(200);
+    io.sockets.emit('change', model);
+  }, delay);
 });
 
 /**
@@ -71,13 +85,23 @@ app.put('/item/:id', function (req, res) {
 
 app.del('/item/:id', function (req, res) {
   var id = req.params.id;
-  var ret = db.remove(id);
-  if (!ret) return res.json(404);
-  res.json(200);
+  var model = db.remove(id);
+  if (!model) return res.json(404);
+  setTimeout(function () {
+    res.json(200);
+    io.sockets.emit('remove', model);
+  }, delay);
 });
+
+/**
+ * socket io
+ */
+
+server = http.createServer(app);
+io = require('socket.io').listen(server);
 
 /**
  * start app!
  */
 
-http.createServer(app).listen(3000);
+server.listen(3000);
